@@ -1,0 +1,198 @@
+package quiz;
+
+//Schnittstelle Zahlenfrage 
+interface Zahlenfrage { 
+
+//liefert true wenn die Methode legeAntwortFest() 
+//schon mindestens einmal ausgef?hrt wurde, ansonsten false 
+boolean istBeantwortet(); 
+
+//liefert true wenn die Frage schon beantwortet wurde 
+//und die Antwort richtig war, ansonsten false 
+boolean istRichtigBeantwortet(); 
+
+//legt die Antwort auf diese Frage fest 
+void legeAntwortFest(int antwort); 
+
+//liefert die Anzahl der erreichten Punkte, 
+//abh?ngig von der Korrektheit der Antwort 
+int liefereErreichtePunkte(); 
+
+//liefert den Fragetext der Aufgabe 
+String liefereFrage(); 
+
+//liefert die maximal m?gliche Anzahl an erreichbaren Punkten 
+int liefereMoeglichePunkte(); 
+
+}
+
+//Klasse AbstrakteZahlenfrage 
+abstract class AbstrakteZahlenfrage implements Zahlenfrage { 
+
+private String frage; 
+private int punkte; 
+protected int antwort; 
+private boolean schonmalgeantwortet = false; 
+
+//erzeugt eine neue Frage, mit der in frage ?bergebene 
+//Fragestellung und den in punkte ?bergebenen maximal m?glichen Punkten 
+public AbstrakteZahlenfrage(String frage, int punkte) { 
+this.frage = frage; 
+this.punkte = punkte; 
+} 
+
+//liefert true wenn die Methode legeAntwortFest() schon 
+//mindestens einmal ausgef?hrt wurde, ansonsten false 
+public boolean istBeantwortet() { 
+if (schonmalgeantwortet == true) {return true;} 
+else {return false;} 
+} 
+
+//legt die Antwort auf diese Frage fest 
+public void legeAntwortFest(int antwort) { 
+this.antwort = antwort; 
+schonmalgeantwortet = true; 
+} 
+
+//liefert die maximal m?gliche Anzahl an Punkte, wenn die Frage 
+//beantwortet wurde und wenn die Antwort richtig war, ansonsten 0 
+public int liefereErreichtePunkte() { 
+if (schonmalgeantwortet==true && istRichtigBeantwortet() == true) {return punkte;} 
+else {return 0;} 
+} 
+
+//liefert die im Konstruktor ?bergebene Fragestellung 
+public String liefereFrage() { 
+return this.frage; 
+} 
+
+//liefert die im Konstruktor ?bergebene maximal m?glichen Punkten 
+public int liefereMoeglichePunkte() { 
+return this.punkte; 
+} 
+
+//liefert true, wenn die Frage schon beantwortet wurde und die Antwort richtig war, 
+//ansonsten false 
+public abstract boolean istRichtigBeantwortet(); 
+
+
+
+}
+
+
+
+//Klasse EinfacheZahlenfrage 
+class EinfacheZahlenfrage extends AbstrakteZahlenfrage { 
+
+private int richtigeAntwort; 
+
+//erzeugt eine neue Frage, mit der in frage ?bergebene Fragestellung, den in punkte 
+//?bergebenen maximal m?glichen Punkten und der in richtigeAntwort ?bergebenen 
+//richtigen Antwort 
+public EinfacheZahlenfrage(String frage, int punkte, int richtigeAntwort) { 
+super(frage,punkte); 
+this.richtigeAntwort = richtigeAntwort; 
+} 
+
+//liefert true wenn die Frage schon beantwortet wurde und der Wert der 
+//Antwort genau mit der im Konstruktor festgelegten Antwort ?bereinstimmt 
+public boolean istRichtigBeantwortet(){ 
+if (istBeantwortet() == true && this.richtigeAntwort == antwort) {return true;} 
+else {return false;} 
+} 
+
+}
+
+//Klasse Schaetzfrage 
+class SchaetzFrage extends AbstrakteZahlenfrage { 
+
+private int richtigeAntwort; 
+private int prozentualeAbweichung; 
+private int intervallobergrenze; 
+private int intervalluntergrenze; 
+
+//erzeugt eine neue Frage, mit der in frage ?bergebene Fragestellung, 
+//den in punkte ?bergebenen maximal m?glichen Punkten, der in richtigeAntwort 
+//?bergebenen richtigen Antwort und die Abweichung in Prozent, in der eine Antwort 
+//dennoch als richtig gilt 
+public SchaetzFrage(String frage, int punkte, int richtigeAntwort, 
+int prozentualeAbweichung) { 
+super(frage,punkte); 
+this.richtigeAntwort = richtigeAntwort; 
+this.prozentualeAbweichung = prozentualeAbweichung; 
+} 
+
+//liefert true wenn die Frage schon beantwortet wurde und die gegebene Antwort sich 
+//innerhalb des Intervalls [richtigeAntwort * (100 - abweichung) / 100, 
+//richtigeAntwort * (100 + abweichung) / 100] 
+public boolean istRichtigBeantwortet(){ 
+intervallobergrenze = richtigeAntwort*(100+prozentualeAbweichung)/100; 
+intervalluntergrenze = richtigeAntwort*(100-prozentualeAbweichung)/100; 
+if (istBeantwortet() == true && antwort <= intervallobergrenze && 
+antwort > intervalluntergrenze) {return true;} 
+else {return false;} 
+} 
+}
+
+//Klasse Quiz 
+class Quiz { 
+
+private int fragenAnzahl=0; 
+private int bisherigeFragenAnzahl=0; 
+Zahlenfrage[] zf; 
+
+//erzeugt ein neues Quiz, mit maximalfragenAnzahl Fragen 
+public Quiz(int fragenAnzahl) { 
+	this.fragenAnzahl = fragenAnzahl; 
+	zf = new Zahlenfrage[fragenAnzahl]; 
+	
+		
+} 
+
+//wenn schon die maximal m?gliche Anzahl an Fragen im Quiz gespeichert wurde, 
+//wird false zur?ckgeliefert, ansonsten wird die Frage hinten ans Quiz angef?gt 
+//und die Methode liefert true zur?ck; wird null ?bergeben, passiert nichts und 
+//es wird false zur?ckgeliefert 
+	public boolean fuegeFrageHinzu(Zahlenfrage f){ 
+		if (f == null) {return false;} 
+		if (bisherigeFragenAnzahl == fragenAnzahl) {return false;} 
+		else { 
+			zf[bisherigeFragenAnzahl] = f; 
+			bisherigeFragenAnzahl++; 
+			return true;} //IF 
+	} 
+
+//liefert die Summe aller erreichten Punkte 
+public int berechneErreichtePunkte() { 
+int summe=0; 
+if(bisherigeFragenAnzahl == 0) { return 0; } 
+//for (int i=0; i<zf.length; i++) {summe = zf.liefereErreichtePunkte() + summe;} 
+System.out.println("zf.0="+zf[2]);
+for (int i=0; i<zf.length; i++) {summe = berechneErreichtePunkte() + summe;} 
+System.out.println("zf.1="+zf);
+return summe; 
+
+} 
+
+//liefert die Summe der maximal m?glichen Punkte 
+public int berechneMaximalMoeglichePunkte() { 
+int summe=0; 
+if(bisherigeFragenAnzahl == 0) { return 0; } 
+//for (int i=0; i<bisherigeFragenAnzahl; i++) {summe = summe + zf.liefereMoeglichePunkte(); } 
+for (int i=0; i<bisherigeFragenAnzahl; i++) {summe = summe + berechneMaximalMoeglichePunkte(); } 
+
+return summe; 
+} 
+
+//liefert die Frage an Position index; dabei ist die zuerst hinzugef?gte Frage 
+//an Position 0 zu finden; gibt es zu dem Index keine Frage wird null zur?ckgeliefert 
+public Zahlenfrage liefereFrage(int index) { 
+if (index<0){return null;} 
+return zf[index]; 
+} 
+
+//liefert die Anzahl der im Quiz gespeicherten Fragen 
+public int liefereFragenAnzahl(){ 
+return bisherigeFragenAnzahl; 
+} 
+} 
